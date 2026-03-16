@@ -23,7 +23,10 @@ Tab:CreateButton({
       if debounce then return end
       debounce = true
 
-      game:GetService("ReplicatedStorage").Remotes.GetMedkit:FireServer()
+      local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+      local med = remotes:WaitForChild("GetMedkit")
+
+      med:FireServer()
 
       task.wait(0.5)
       debounce = false
@@ -66,45 +69,52 @@ Tab:CreateButton({
    end,
 })
 
--- NOCLIP
+-- NOCLIP (đã sửa không bị nhiễu)
+local noclip = false
+game:GetService("RunService").Stepped:Connect(function()
+   if noclip and player.Character then
+      for _,v in pairs(player.Character:GetDescendants()) do
+         if v:IsA("BasePart") then
+            v.CanCollide = false
+         end
+      end
+   end
+end)
+
 Tab:CreateToggle({
    Name = "Noclip",
    CurrentValue = false,
    Callback = function(Value)
-
       noclip = Value
-      game:GetService("RunService").Stepped:Connect(function()
-         if noclip and player.Character then
-            for _,v in pairs(player.Character:GetDescendants()) do
-               if v:IsA("BasePart") then
-                  v.CanCollide = false
-               end
-            end
-         end
-      end)
-
    end,
 })
 
--- FLY
+-- FLY (đã sửa không bug)
+local fly = false
+local bv
+
 Tab:CreateToggle({
    Name = "Fly",
    CurrentValue = false,
    Callback = function(Value)
 
+      fly = Value
       local char = player.Character
-      if char then
-         local hrp = char:WaitForChild("HumanoidRootPart")
+      if not char then return end
 
-         if Value then
-            local bv = Instance.new("BodyVelocity")
+      local hrp = char:WaitForChild("HumanoidRootPart")
+
+      if fly then
+         if not bv then
+            bv = Instance.new("BodyVelocity")
             bv.MaxForce = Vector3.new(100000,100000,100000)
             bv.Velocity = Vector3.new(0,50,0)
             bv.Parent = hrp
-         else
-            if hrp:FindFirstChildOfClass("BodyVelocity") then
-               hrp:FindFirstChildOfClass("BodyVelocity"):Destroy()
-            end
+         end
+      else
+         if bv then
+            bv:Destroy()
+            bv = nil
          end
       end
 
