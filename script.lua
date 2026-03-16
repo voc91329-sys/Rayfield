@@ -14,6 +14,23 @@ local Tab = Window:CreateTab("Main",4483362458)
 
 local player = game.Players.LocalPlayer
 
+-- MEDKIT
+local debounce = false
+Tab:CreateButton({
+   Name = "Medkit",
+   Callback = function()
+
+      if debounce then return end
+      debounce = true
+
+      game:GetService("ReplicatedStorage").Remotes.GetMedkit:FireServer()
+
+      task.wait(0.5)
+      debounce = false
+
+   end,
+})
+
 -- XÓA TOOL ĐANG CẦM
 Tab:CreateButton({
    Name = "Xóa Tool Đang Cầm",
@@ -46,56 +63,6 @@ Tab:CreateButton({
             v:Destroy()
          end
       end
-   end,
-})
-
--- GAME BOOSTER
-Tab:CreateButton({
-   Name = "Game Booster (Anti Lag)",
-   Callback = function()
-
-      -- giảm đồ họa 40%
-      settings().Rendering.QualityLevel = Enum.QualityLevel.Level04
-
-      game.Lighting.GlobalShadows = false
-      game.Lighting.FogEnd = 100000
-
-      for _,v in pairs(game:GetDescendants()) do
-
-         -- xóa cây đá
-         if v.Name:lower():find("tree") 
-         or v.Name:lower():find("rock") then
-            if v:IsA("Model") or v:IsA("Part") then
-               v:Destroy()
-            end
-         end
-
-         -- xóa nước lava
-         if v:IsA("Terrain") then
-            v.WaterWaveSize = 0
-            v.WaterWaveSpeed = 0
-            v.WaterReflectance = 0
-            v.WaterTransparency = 1
-         end
-
-         -- xóa hiệu ứng 80%
-         if v:IsA("ParticleEmitter")
-         or v:IsA("Trail")
-         or v:IsA("Smoke")
-         or v:IsA("Fire")
-         or v:IsA("Sparkles")
-         or v:IsA("Explosion") then
-            v.Enabled = false
-         end
-
-         -- giảm chuyển động 80%
-         if v:IsA("BasePart") then
-            v.Material = Enum.Material.Plastic
-            v.Reflectance = 0
-         end
-
-      end
-
    end,
 })
 
