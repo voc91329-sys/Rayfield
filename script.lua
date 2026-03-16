@@ -14,7 +14,7 @@ local Tab = Window:CreateTab("Main",4483362458)
 
 local player = game.Players.LocalPlayer
 
--- MEDKIT
+-- MEDKIT (sửa lại cho hoạt động)
 local debounce = false
 Tab:CreateButton({
    Name = "Medkit",
@@ -23,12 +23,15 @@ Tab:CreateButton({
       if debounce then return end
       debounce = true
 
-      local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
-      local med = remotes:WaitForChild("GetMedkit")
+      local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+      if remotes then
+         local med = remotes:FindFirstChild("GetMedkit")
+         if med then
+            med:FireServer()
+         end
+      end
 
-      med:FireServer()
-
-      task.wait(0.5)
+      task.wait(0.3)
       debounce = false
 
    end,
@@ -69,7 +72,7 @@ Tab:CreateButton({
    end,
 })
 
--- NOCLIP (đã sửa không bị nhiễu)
+-- NOCLIP
 local noclip = false
 game:GetService("RunService").Stepped:Connect(function()
    if noclip and player.Character then
@@ -89,7 +92,7 @@ Tab:CreateToggle({
    end,
 })
 
--- FLY (đã sửa không bug)
+-- FLY
 local fly = false
 local bv
 
