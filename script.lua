@@ -1,125 +1,84 @@
--- Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- FIX LAG ULTRA SAFE MAX (GIỮ NGUYÊN MAP, XÓA VẬT PHỤ + HIỆU ỨNG)
+-- by ChatGPT
 
-local Window = Rayfield:CreateWindow({
-   Name = "Tool + Booster",
-   LoadingTitle = "Spirit GUI",
-   LoadingSubtitle = "by You",
-   ConfigurationSaving = {
-      Enabled = false
-   }
-})
+getgenv().FixLagUltraSafeMax = function()
+    local Workspace = game:GetService("Workspace")
+    local Lighting = game:GetService("Lighting")
 
-local Tab = Window:CreateTab("Main",4483362458)
+    -- ===== 1. Xóa ~200 hiệu ứng =====
+    for _,v in ipairs(game:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire")
+        or v:IsA("Sparkles") or v:IsA("Beam") or v:IsA("Highlight") or v:IsA("ForceField")
+        or v:IsA("Explosion") or v:IsA("SpecialMesh") or v:IsA("MeshPart") or v:IsA("UnionOperation")
+        or v:IsA("WedgePart") or v:IsA("CornerWedgePart") or v:IsA("Decal") or v:IsA("Texture")
+        or v:IsA("PointLight") or v:IsA("SpotLight") or v:IsA("SurfaceLight")
+        or v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect")
+        or v:IsA("ColorCorrectionEffect") or v:IsA("DepthOfFieldEffect") then
+            pcall(function() v:Destroy() end)
+        end
+    end
 
-local player = game.Players.LocalPlayer
-
--- MEDKIT (sửa lại cho hoạt động)
-local debounce = false
-Tab:CreateButton({
-   Name = "Medkit",
-   Callback = function()
-
-      if debounce then return end
-      debounce = true
-
-      local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
-      if remotes then
-         local med = remotes:FindFirstChild("GetMedkit")
-         if med then
-            med:FireServer()
-         end
-      end
-
-      task.wait(0.3)
-      debounce = false
-
-   end,
-})
-
--- XÓA TOOL ĐANG CẦM
-Tab:CreateButton({
-   Name = "Xóa Tool Đang Cầm",
-   Callback = function()
-      local char = player.Character
-      if char then
-         local tool = char:FindFirstChildOfClass("Tool")
-         if tool then
-            tool:Destroy()
-         end
-      end
-   end,
-})
-
--- XÓA TẤT CẢ TOOL
-Tab:CreateButton({
-   Name = "Xóa Tất Cả Tool",
-   Callback = function()
-      local char = player.Character
-      if char then
-         for _,v in pairs(char:GetChildren()) do
-            if v:IsA("Tool") then
-               v:Destroy()
+    -- ===== 2. Xóa vật phụ nhưng giữ nền đảo =====
+    for _,v in ipairs(Workspace:GetDescendants()) do
+        if v:IsA("BasePart") then
+            -- Nếu Parent là map chính / kap / nền → giữ lại
+            if v.Parent.Name:lower():find("map") or v.Parent.Name:lower():find("island") then
+                -- giữ nền
+            else
+                local name = v.Name:lower()
+                if name:find("tree") or name:find("leaf") or name:find("grass") or name:find("wood")
+                or name:find("rock") or name:find("stone") or name:find("metal") or name:find("iron")
+                or name:find("glass") or name:find("brick") or name:find("cobble") then
+                    pcall(function() v:Destroy() end)
+                end
             end
-         end
-      end
+        end
+        if v:IsA("Model") then
+            pcall(function() v:Destroy() end)
+        end
+    end
 
-      for _,v in pairs(player.Backpack:GetChildren()) do
-         if v:IsA("Tool") then
-            v:Destroy()
-         end
-      end
-   end,
-})
+    -- ===== 3. Vật liệu + độ họa cực khô =====
+    for _,v in ipairs(Workspace:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.Plastic
+            v.CastShadow = false
+            v.Reflectance = 0
+            v.Transparency = 0
+        end
+    end
 
--- NOCLIP
-local noclip = false
-game:GetService("RunService").Stepped:Connect(function()
-   if noclip and player.Character then
-      for _,v in pairs(player.Character:GetDescendants()) do
-         if v:IsA("BasePart") then
-            v.CanCollide = false
-         end
-      end
-   end
-end)
+    -- ===== 4. Tắt đồ họa =====
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
 
-Tab:CreateToggle({
-   Name = "Noclip",
-   CurrentValue = false,
-   Callback = function(Value)
-      noclip = Value
-   end,
-})
+    -- ===== 5. Tắt ánh sáng cực khô =====
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.Brightness = 0
+    Lighting.ExposureCompensation = 0
+    Lighting.OutdoorAmbient = Color3.fromRGB(0,0,0)
+    Lighting.Technology = Enum.Technology.Compatibility
 
--- FLY
-local fly = false
-local bv
+    for _,v in ipairs(Lighting:GetDescendants()) do
+        if v:IsA("Sky") or v:IsA("BloomEffect") or v:IsA("BlurEffect")
+        or v:IsA("SunRaysEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("DepthOfFieldEffect") then
+            pcall(function() v:Destroy() end)
+        end
+    end
 
-Tab:CreateToggle({
-   Name = "Fly",
-   CurrentValue = false,
-   Callback = function(Value)
+    -- ===== 6. Tắt nước =====
+    local terrain = Workspace:FindFirstChildOfClass("Terrain")
+    if terrain then
+        pcall(function()
+            terrain.WaterWaveSize = 0
+            terrain.WaterWaveSpeed = 0
+            terrain.WaterReflectance = 0
+            terrain.WaterTransparency = 1
+        end)
+    end
+end
 
-      fly = Value
-      local char = player.Character
-      if not char then return end
-
-      local hrp = char:WaitForChild("HumanoidRootPart")
-
-      if fly then
-         if not bv then
-            bv = Instance.new("BodyVelocity")
-            bv.MaxForce = Vector3.new(100000,100000,100000)
-            bv.Velocity = Vector3.new(0,50,0)
-            bv.Parent = hrp
-         end
-      else
-         if bv then
-            bv:Destroy()
-            bv = nil
-         end
-      end
-
-   end,
-})
+-- Chạy ngay
+getgenv().FixLagUltraSafeMax()
