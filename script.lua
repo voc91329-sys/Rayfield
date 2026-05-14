@@ -1,61 +1,60 @@
--- OPTIMIZER v1.0 (No GUI)
-local Lighting = game:GetService("Lighting")
-local Terrain = game:GetService("Workspace").Terrain
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+-- GUI Toggle & Fast Run Script (Force Push 60)
+local Player = game.Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- 1. Tối ưu đồ họa & Xóa vật thể thừa
-local function Optimize()
-    -- Tắt hiệu ứng ánh sáng
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 9e9
-    Lighting.Brightness = 1
+-- Tạo ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FastRunGui"
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Menu chính (Bo tròn & Zero Gap)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 150, 0, 50)
+MainFrame.Position = UDim2.new(0.5, -75, 0.8, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+-- Bo tròn góc (UICorner)
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = Tool.UDim.new(0, 10) -- Bo tròn theo ý thích
+UICorner.Parent = MainFrame
+
+-- Nút bấm Chạy Nhanh (Lực đẩy 60)
+local FastRunBtn = Instance.new("TextButton")
+FastRunBtn.Name = "FastRunBtn"
+FastRunBtn.Size = UDim2.new(1, 0, 1, 0) -- Zero Gap (Lấp đầy Frame)
+FastRunBtn.BackgroundTransparency = 1
+FastRunBtn.Text = "FORCE PUSH (60)"
+FastRunBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FastRunBtn.Font = Enum.Font.GothamBold
+FastRunBtn.TextSize = 14
+FastRunBtn.Parent = MainFrame
+
+-- Hàm xử lý lực đẩy
+local function ApplyForce()
+    local BV = Instance.new("BodyVelocity")
+    BV.MaxForce = Vector3.new(100000, 0, 100000) -- Chỉ đẩy theo phương ngang
+    BV.Velocity = HumanoidRootPart.CFrame.LookVector * 60 -- Lực đẩy tới 60
+    BV.Parent = HumanoidRootPart
     
-    -- Xóa effect/Sky/Clouds
-    for _, child in pairs(Lighting:GetChildren()) do
-        if child:IsA("PostProcessEffect") or child:IsA("Sky") or child:IsA("Clouds") then
-            child:Destroy()
-        end
+    wait(0.1) -- Thời gian đẩy ngắn để tạo cảm giác lướt
+    BV:Destroy()
+end
+
+-- Kích hoạt khi nhấn nút
+FastRunBtn.MouseButton1Click:Connect(function()
+    ApplyForce()
+end)
+
+-- Kích hoạt bằng phím tắt (Ví dụ: phím Q)
+game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.Q then
+        ApplyForce()
     end
-    
-    -- Tắt vật liệu nước/trang trí
-    Terrain.WaterWaveSize = 0
-    Terrain.WaterWaveSpeed = 0
-    Terrain.WaterReflectance = 0
-    Terrain.WaterTransparency = 0
-    
-    -- Giảm chất lượng đồ họa
-    settings().Rendering.QualityLevel = 1
-    
-    -- Quét và xóa vật thể rác/cây cối
-    for _, obj in pairs(game:GetDescendants()) do
-        if obj:IsA("BasePart") or obj:IsA("MeshPart") then
-            obj.Material = Enum.Material.Plastic
-            obj.Reflectance = 0
-            
-            local name = obj.Name:lower()
-            if name:find("tree") or name:find("leaf") or name:find("bush") or name:find("grass") then
-                obj:Destroy()
-            end
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Fire") or obj:IsA("Smoke") then
-            obj.Enabled = false
-        end
-    end
-end
+end)
 
--- 2. Unlock 120 FPS
-if setfpscap then
-    setfpscap(120)
-end
-
--- 3. Camera Mượt (Sensitivity 200)
-UserInputService.MouseDeltaSensitivity = 2.0
-local camera = workspace.CurrentCamera
-if camera then
-    camera.FieldOfView = 80
-end
-
--- Thực thi
-Optimize()
-
-print("Optimization complete: FPS unlocked, objects removed, settings optimized.")
+print("Script Loaded: Force Push 60 with Rounded Zero Gap GUI")
